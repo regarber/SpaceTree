@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>SpaceTree</AssemblyName>
+    <RootNamespace>SpaceTree.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\SpaceTree.ico</ApplicationIcon>
+    <Product>SpaceTree</Product>
+    <AssemblyTitle>SpaceTree Disk Space Analyzer</AssemblyTitle>
+    <Company>SpaceTree</Company>
+    <Version>1.0.0</Version>
+
+    <!-- Scanning is throughput-bound across many threads; the server collector
+         keeps allocation of directory nodes from serialising on one heap. -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SpaceTree.Core\SpaceTree.Core.csproj" />
+  </ItemGroup>
+
+</Project>

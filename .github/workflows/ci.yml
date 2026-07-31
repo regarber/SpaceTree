@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and test
+    # The scanner is built on Win32 directory enumeration and the tests exercise
+    # it against a real filesystem, so this only runs meaningfully on Windows.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore SpaceTree.sln
+
+      - name: Build
+        run: dotnet build SpaceTree.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test SpaceTree.sln -c Release --no-build --verbosity normal
+
+      - name: Publish single-file executable
+        run: >
+          dotnet publish src/SpaceTree.App -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpaceTree-win-x64
+          path: publish/SpaceTree.exe
+          if-no-files-found: error

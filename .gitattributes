@@ -1,0 +1,22 @@
+# Normalise text in the repository, check out with CRLF — this is a
+# Windows-only codebase and the tooling expects Windows line endings.
+* text=auto eol=crlf
+
+*.cs      text diff=csharp
+*.xaml    text
+*.csproj  text
+*.sln     text
+*.md      text
+*.yml     text
+*.json    text
+*.manifest text
+
+# Binary assets must never be line-ending converted.
+*.png binary
+*.ico binary
+*.jpg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.dll binary
+*.exe binary
