@@ -49,11 +49,14 @@ A 140,000-file tree takes around 660 ms on the same NVMe drive.
 - Matching keeps the ancestors of a match visible, so you can see *where* the hits live
 - Minimum-size threshold and a hide-empty-folders toggle
 
-**Export**
-- CSV (RFC 4180, UTF-8 with BOM so Excel handles non-ASCII names)
-- Indented plain text
-- Self-contained HTML report with inline styling and proportional bars
-- Print, which doubles as PDF export via the built-in *Microsoft Print to PDF* printer
+**Export** — two kinds, for two different jobs
+- **Data exports** are complete: CSV (RFC 4180, UTF-8 with BOM so Excel handles non-ASCII
+  names) and indented plain text list every entry
+- **Reports** are summarised: the self-contained HTML report and the printed output keep the
+  largest items at each level and collapse the rest into "and N more items" rows. Within any
+  folder the listed children plus that row always sum to the folder's total, so the figures
+  still reconcile
+- Print doubles as PDF export via the built-in *Microsoft Print to PDF* printer
 
 **Everything else**
 - Dark and light themes, or follow the Windows setting
@@ -217,7 +220,8 @@ Unhandled errors are appended to `%APPDATA%\SpaceTree\errors.log`.
   reason it is fast; a cross-platform port would need a separate backend.
 - PDF export goes through the print dialog rather than a bundled PDF library. This keeps the
   application dependency-free, at the cost of one extra dialog.
-- Printed reports are capped at 4,000 rows. Use CSV for the complete listing.
+- HTML and printed reports are summaries, not complete listings — see Export above. Use CSV
+  or text when you need every row.
 - Deleting an item marks the view "out of date" rather than recomputing every ancestor total;
   press `F5` to get exact numbers again.
 - Folders that cannot be read are excluded from totals. The count is shown in the status bar and

@@ -40,6 +40,13 @@ public static class HtmlReportExporter
             WriteMetaItem(writer, "Scan time", SizeFormatter.FormatDuration(metadata.Duration));
         writer.Write("</div>");
 
+        if (!string.IsNullOrWhiteSpace(metadata.ScopeNote))
+        {
+            writer.Write("<p class=\"scope\">");
+            writer.Write(Encode(metadata.ScopeNote));
+            writer.Write("</p>");
+        }
+
         writer.Write("<table><thead><tr>");
         writer.Write("<th class=\"name\">Name</th><th class=\"num\">Size</th><th class=\"num\">Allocated</th>");
         writer.Write("<th class=\"bar\">% of Parent</th><th class=\"num\">Files</th><th class=\"num\">Folders</th>");
@@ -51,11 +58,12 @@ public static class HtmlReportExporter
             double pct = Math.Clamp(row.PercentOfParent, 0, 1);
 
             writer.Write("<tr class=\"");
-            writer.Write(row.IsFile ? "file" : "folder");
+            writer.Write(row.IsSummary ? "summary" : row.IsFile ? "file" : "folder");
             writer.Write("\"><td class=\"name\"><span class=\"ind\" style=\"width:");
             writer.Write((Math.Min(row.Depth, 24) * 16).ToString());
             writer.Write("px\"></span><span class=\"ico\">");
-            writer.Write(row.IsFile ? "&#128196;" : "&#128193;");
+            // A summary row stands for a group, so it gets no file or folder icon.
+            writer.Write(row.IsSummary ? "&#8943;" : row.IsFile ? "&#128196;" : "&#128193;");
             writer.Write("</span>");
             writer.Write(Encode(row.Name));
             writer.Write("</td>");
@@ -69,8 +77,8 @@ public static class HtmlReportExporter
             writer.Write(SizeFormatter.FormatPercent(pct));
             writer.Write("</span></td>");
 
-            WriteNumeric(writer, row.IsFile ? string.Empty : SizeFormatter.FormatCount(row.FileCount));
-            WriteNumeric(writer, row.IsFile ? string.Empty : SizeFormatter.FormatCount(row.FolderCount));
+            WriteNumeric(writer, row.IsFile || row.IsSummary ? string.Empty : SizeFormatter.FormatCount(row.FileCount));
+            WriteNumeric(writer, row.IsFile || row.IsSummary ? string.Empty : SizeFormatter.FormatCount(row.FolderCount));
 
             writer.Write("<td class=\"date\">");
             writer.Write(Encode(SizeFormatter.FormatDate(row.LastModified)));
@@ -148,6 +156,10 @@ public static class HtmlReportExporter
         .ind{display:inline-block}
         .ico{margin-right:6px;opacity:.75}
         tr.file td.name{color:var(--muted)}
+        tr.summary td{color:var(--muted);font-style:italic}
+        tr.summary td.name{opacity:.85}
+        .scope{padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);
+          border-radius:6px;margin:0 0 18px;color:var(--muted);font-size:12px;background:#fafbfc}
         td.bar{width:190px}
         .track{display:inline-block;width:110px;height:9px;background:var(--track);border-radius:5px;overflow:hidden;vertical-align:middle}
         .fill{height:100%;background:var(--accent);border-radius:5px}
@@ -171,6 +183,12 @@ public static class HtmlReportExporter
 public sealed class ReportMetadata
 {
     public required string RootPath { get; init; }
+
+    /// <summary>
+    /// Explains any summarising applied, so a reader knows the listing is not
+    /// exhaustive and where to get the complete data.
+    /// </summary>
+    public string? ScopeNote { get; init; }
     public long TotalSize { get; init; }
     public long TotalAllocated { get; init; }
     public long FileCount { get; init; }

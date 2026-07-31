@@ -980,6 +980,26 @@ public sealed class MainViewModel : ObservableObject
         return ExportRowBuilder.Build(root, options).ToList();
     }
 
+    /// <summary>
+    /// Builds the rows for a report, as opposed to a data export.
+    ///
+    /// Reports are read in a browser or on paper, so they are summarised rather
+    /// than exhaustive: listing every entry of a home directory produced a 61 MB
+    /// page with millions of DOM nodes, which is enough to hang a browser tab.
+    /// CSV and text remain complete.
+    /// </summary>
+    private IReadOnlyList<ExportRow> BuildReportRows(DirectoryNode root) =>
+        ReportRowBuilder.Build(root, new ReportOptions
+        {
+            IncludeFiles = _context.ShowFiles,
+            Filter = _context.Filter,
+        });
+
+    private static string ReportScopeNote(int rowCount) =>
+        $"Summarised report: the largest items are listed at each level and everything else is " +
+        $"grouped into \"and N more items\" rows, so the figures still add up to the totals above. " +
+        $"{rowCount:N0} rows shown. Export to CSV for the complete listing.";
+
     /// <summary>Exports the selected folder when there is one, otherwise the whole scan.</summary>
     private DirectoryNode? ExportRootNode() => _selectedRow?.Node ?? _result?.Root;
 
@@ -1023,7 +1043,8 @@ public sealed class MainViewModel : ObservableObject
         if (path is null)
             return;
 
-        Guard(() => HtmlReportExporter.WriteToFile(path, BuildExportRows(root), BuildMetadata(root), _context.Units), path);
+        var rows = BuildReportRows(root);
+        Guard(() => HtmlReportExporter.WriteToFile(path, rows, BuildMetadata(root, ReportScopeNote(rows.Count)), _context.Units), path);
     }
 
     private void Print()
@@ -1034,7 +1055,8 @@ public sealed class MainViewModel : ObservableObject
 
         try
         {
-            _dialogs.PrintReport(BuildExportRows(root), BuildMetadata(root), _context.Units);
+            var rows = BuildReportRows(root);
+            _dialogs.PrintReport(rows, BuildMetadata(root, ReportScopeNote(rows.Count)), _context.Units);
         }
         catch (Exception e) when (e is IOException or InvalidOperationException)
         {
@@ -1042,9 +1064,10 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    private ReportMetadata BuildMetadata(DirectoryNode root) => new()
+    private ReportMetadata BuildMetadata(DirectoryNode root, string? scopeNote = null) => new()
     {
         RootPath = LongPath.ToDisplay(root.FullPath),
+        ScopeNote = scopeNote,
         TotalSize = root.TotalSize,
         TotalAllocated = root.TotalAllocated,
         FileCount = root.TotalFileCount,

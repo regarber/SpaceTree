@@ -14,7 +14,16 @@ public readonly record struct ExportRow(
     double PercentOfParent,
     long FileCount,
     long FolderCount,
-    DateTime LastModified);
+    DateTime LastModified)
+{
+    /// <summary>
+    /// True for the synthetic "and N more items" row that <see cref="ReportRowBuilder"/>
+    /// emits to account for children it did not list. Such a row stands for a
+    /// group rather than a real entry, so <see cref="FullPath"/> points at the
+    /// containing folder and writers should not present it as something on disk.
+    /// </summary>
+    public bool IsSummary { get; init; }
+}
 
 public sealed class ExportOptions
 {
