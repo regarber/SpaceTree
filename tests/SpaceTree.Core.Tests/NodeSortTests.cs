@@ -133,7 +133,14 @@ public class NodeSortTests
         };
 
         var forwards = rows.ToArray();
-        var backwards = rows.Reverse().ToArray();
+
+        // Array.Reverse rather than rows.Reverse(): on an array the LINQ
+        // extension competes with MemoryExtensions.Reverse(Span<T>), which
+        // reverses in place and returns void. Which one wins depends on the SDK
+        // version, so chaining .ToArray() onto it compiles on some toolchains
+        // and fails on others. Being explicit keeps this building everywhere.
+        var backwards = rows.ToArray();
+        Array.Reverse(backwards);
 
         Comparison<RowKey> comparison = (x, y) =>
             NodeSort.Compare(x, y, SortColumn.Size, SortDirection.Descending);
